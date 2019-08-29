@@ -147,6 +147,7 @@ class Diagnostyk(QTabWidget):
         print(self.io_comm)
         #        self.CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=[0x31, 0x01, 0x14, 0x00, 0x00, 0x0A, 0x07, 0x01], extended_id=True)
         self.CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=[0x02, 0x3E, 0x00], extended_id=True, is_fd=True, bitrate_switch=True)
+        self.CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=command4, extended_id=True, is_fd=True, bitrate_switch=True)
         #self.CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=[0x31, 0x01, 0x14, 0x00, 0x00, 0x02, 0x0F, 0x01], extended_id=True, is_fd=True, bitrate_switch=True)
         #self.CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=[0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA], extended_id=True, is_fd=True, bitrate_switch=True)
         #        self.CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=[0x31, 0x01, 0x1B, 0x00, 0x02, 0x00, 0x19], extended_id=True)
