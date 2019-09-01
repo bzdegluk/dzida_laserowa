@@ -21,6 +21,7 @@ class Diagnostyk(QTabWidget):
         self.addTab(self.tab2, "HCP1 CONTROL")
 
         self.interfejs()
+        self.interfejs2()
 
     def interfejs(self):
         label_interfacetype = QLabel("CAN Interface Type", self)
@@ -37,17 +38,20 @@ class Diagnostyk(QTabWidget):
         self.combo_interfacechannel = QComboBox(self)
         self.combo_interfacechannel.addItem("1")
         self.combo_interfacechannel.addItem("2")
+        self.combo_interfacechannel.setCurrentIndex(1)
 
         self.combo_interfacespeed = QComboBox(self)
         self.combo_interfacespeed.addItem("100000")
         self.combo_interfacespeed.addItem("250000")
         self.combo_interfacespeed.addItem("500000")
         self.combo_interfacespeed.addItem("1000000")
+        self.combo_interfacespeed.setCurrentIndex(2)
 
         self.combo_fd_interfacespeed = QComboBox(self)
         self.combo_fd_interfacespeed.addItem("1000000")
         self.combo_fd_interfacespeed.addItem("2000000")
         self.combo_fd_interfacespeed.addItem("5000000")
+        self.combo_fd_interfacespeed.setCurrentIndex(1)
 
 
         button_connect = QPushButton("&Connect", self)
@@ -82,9 +86,131 @@ class Diagnostyk(QTabWidget):
         send_frame.clicked.connect(self.send_COMM)
         receive_frame.clicked.connect(self.receive_COMM)
 
+#        self.setGeometry(20, 20, 600, 600)
+#        self.setWindowTitle("Dzida Laserowa #<--->#             beta 0.0")
+#        self.show()
+
+# Druga zakladka
+
+    def interfejs2(self):
+        label_SetGPIO = QLabel("Set GPIO", self)
+        labe_SetPWM = QLabel("Set PWM freq and duty",self)
+        label_ReadADC = QLabel("Read ADC value",self)
+
+        button_gpio_set = QPushButton("&Set GPIO",self)
+        button_gpio_reset = QPushButton("&Reset GPIO",self)
+        button_pmw_set = QPushButton("&PWM SET")
+        button_adc_get = QPushButton("&Read ADC")
+        button_sleep = QPushButton("&Go to Sleep")
+        button_test = QPushButton("Tester Present")
+
+
+        self.gpio_comm = QLineEdit(self)
+        self.gpio_comm.setInputMask('999-99')
+        self.pwm_freq = QLineEdit(self)
+#        self.pwm_freq.setInputMask('999999')
+        self.pwm_duty = QLineEdit(self)
+#        self.pwm_duty.setInputMask('999')
+        self.adc_value = QLineEdit(self)
+        self.test_result = QLineEdit(self)
+        self.build_date = QLineEdit(self)
+
+        self.combo_pwm_chanell = QComboBox(self)
+        self.combo_pwm_chanell.addItem("LSD_1A")
+        self.combo_pwm_chanell.addItem("Damper_1A")
+        self.combo_pwm_chanell.addItem("LSD_1B")
+        self.combo_pwm_chanell.addItem("Damper_1B")
+        self.combo_pwm_chanell.addItem("LSD_2A")
+        self.combo_pwm_chanell.addItem("Damper_2A")
+        self.combo_pwm_chanell.addItem("LSD_2B")
+        self.combo_pwm_chanell.addItem("Damper_2B")
+        self.combo_pwm_chanell.addItem("LSD_3A")
+        self.combo_pwm_chanell.addItem("Damper_3A")
+        self.combo_pwm_chanell.addItem("LSD_3B")
+        self.combo_pwm_chanell.addItem("Damper_3B")
+        self.combo_pwm_chanell.addItem("LSD_4A")
+        self.combo_pwm_chanell.addItem("Damper_4A")
+        self.combo_pwm_chanell.addItem("LSD_4B")
+        self.combo_pwm_chanell.addItem("Damper_4B")
+        self.combo_pwm_chanell.addItem("Force_FB_Acc_Pedal")
+        self.combo_adc_chanell = QComboBox(self)
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_fb")
+
+        ukladT2 = QGridLayout()
+        ukladT2.addWidget(button_test,0 ,0)
+        ukladT2.addWidget(self.test_result, 0, 1)
+        ukladT2.addWidget(self.build_date, 0, 2)
+        ukladT2.addWidget(label_SetGPIO,1,0)
+        ukladT2.addWidget(self.gpio_comm,1,1)
+        ukladT2.addWidget(button_gpio_set,1,2)
+        ukladT2.addWidget(button_gpio_reset,1,3)
+        ukladT2.addWidget(labe_SetPWM,2,0)
+        ukladT2.addWidget(self.combo_pwm_chanell,2,1)
+        ukladT2.addWidget(self.pwm_freq,2,2)
+        ukladT2.addWidget(self.pwm_duty,2,3)
+        ukladT2.addWidget(button_pmw_set,2,4)
+        ukladT2.addWidget(label_ReadADC,3,0)
+        ukladT2.addWidget(self.combo_adc_chanell,3,1)
+        ukladT2.addWidget(button_adc_get,3,2)
+        ukladT2.addWidget(self.adc_value,3,3)
+        ukladT2.addWidget(button_sleep,4,0)
+
+        self.tab2.setLayout(ukladT2)
+
+        button_gpio_set.clicked.connect(self.GPIO_set)
+        button_gpio_reset.clicked.connect(self.GPIO_reset)
+        button_pmw_set.clicked.connect(self.send_PWM_Set)
+        button_adc_get.clicked.connect(self.send_ADC_Read)
+        button_sleep.clicked.connect(self.send_Go_Sleep)
+        button_test.clicked.connect(self.send_Test)
+
         self.setGeometry(20, 20, 600, 600)
-        self.setWindowTitle("Dzida Laserowa #<--->#             beta 0.0")
+        self.setWindowTitle("Dzida Laserowa #<--->#             beta 0.2")
+        self.move(150, 150)
         self.show()
+
 
     def CAN_conf(self):
             CAN_type = bool(self.combo_interfacetype.currentIndex())
@@ -162,8 +288,143 @@ class Diagnostyk(QTabWidget):
         self.text_interfacetype.insertPlainText("received" + str(CAN_rtmsg) + "\n")
 
     def receive_COMM(self):
+
         CAN_rtmsg = self.CAN_bus.recv(0.1)
         self.text_interfacetype.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+
+    def GPIO_set(self):
+        self.send_GPIO_Set(True)
+        print ("hello")
+
+
+    def GPIO_reset(self):
+        self.send_GPIO_Set(False)
+
+    def send_GPIO_Set(self, state):
+        self.gpio_command = self.gpio_comm.text()
+        command_gpio_t = list(self.gpio_command.split('-'))
+        print (command_gpio_t)
+        command_gpio = [0x10, 0x08, 0x31, 0x01, 0x14, 0x00, 0x00]
+        command_gpio.append(int(command_gpio_t[0],10))
+        command_gpio2 = [0x21]
+        command_gpio2.append(int(command_gpio_t[1],10))
+#        command_gpio2.append(int(command_gpio_t[2], 10))
+        if state == True:
+            command_gpio2.append(0x01)
+        else:
+            command_gpio2.append(0x00)
+        command_gpio2.append(0x00)
+        command_gpio2.append(0x00)
+        command_gpio2.append(0x00)
+        command_gpio2.append(0x00)
+        command_gpio2.append(0x00)
+
+        print (command_gpio)
+        print (command_gpio2)
+        self.CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=command_gpio, extended_id=True, is_fd=True, bitrate_switch=True)
+        self.CAN_msg2 = can.Message(arbitration_id=0x18DA0000, data=command_gpio2, extended_id=True, is_fd=True, bitrate_switch=True)
+        try:
+            self.CAN_bus.send(self.CAN_msg1)
+        except can.CanError:
+            print("Message not sent")
+        self.text_interfacetype.insertPlainText("sent: " + str(self.CAN_msg1) + "\n")
+        CAN_rtmsg = self.CAN_bus.recv(0.1)
+        self.text_interfacetype.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+        try:
+            self.CAN_bus.send(self.CAN_msg2)
+        except can.CanError:
+            print("Message not sent")
+        self.text_interfacetype.insertPlainText("sent: " + str(self.CAN_msg1) + "\n")
+        CAN_rtmsg = self.CAN_bus.recv(0.1)
+        self.text_interfacetype.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+
+    def send_PWM_Set(self):
+        channel = self.combo_pwm_chanell.currentIndex()
+        freq = int(self.pwm_freq.text())
+        duty = int(self.pwm_duty.text())
+        print(str(channel) + ' ' + str(freq) + ' ' + str(duty))
+        command_pwm = [0x07, 0x31, 0x01, 0x1B, 0x00]
+        command_pwm.append(channel)
+        command_pwm.append(freq)
+        command_pwm.append(duty)
+        print (command_pwm)
+
+        CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=command_pwm, extended_id=True, is_fd=True, bitrate_switch=True)
+
+        try:
+            self.CAN_bus.send(CAN_msg1)
+        except can.CanError:
+            print("Message not sent")
+        self.text_interfacetype.insertPlainText("sent: " + str(CAN_msg1) + "\n")
+        CAN_rtmsg = self.CAN_bus.recv(0.1)
+        self.text_interfacetype.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+
+    def send_ADC_Read(self):
+        channel = self.combo_adc_chanell.currentIndex()
+        command_adc = [0x06, 0x31, 0x01, 0x1A, 0x02, 0x00]
+        command_adc.append(channel)
+        print (command_adc)
+
+        CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=command_adc, extended_id=True, is_fd=True, bitrate_switch=True)
+
+        try:
+            self.CAN_bus.send(CAN_msg1)
+        except can.CanError:
+            print("Message not sent")
+        self.text_interfacetype.insertPlainText("sent: " + str(CAN_msg1) + "\n")
+        CAN_rtmsg = self.CAN_bus.recv(0.1)
+        self.text_interfacetype.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+
+#        print (CAN_rtmsg)
+        if len(CAN_rtmsg.data) != 0:
+            if CAN_rtmsg.data[0] == 0x71:
+                self.adc_value.setText(str(CAN_rtmsg.data[4])+str(CAN_rtmsg.data[5]))
+
+    def send_Go_Sleep(self):
+        CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=[0x04,0x31, 0x01, 0xFF, 0xA0], extended_id=True, is_fd=True, bitrate_switch=True)
+
+        try:
+            self.CAN_bus.send(CAN_msg1)
+        except can.CanError:
+            print("Message not sent")
+        self.text_interfacetype.insertPlainText("sent: " + str(CAN_msg1) + "\n")
+        CAN_rtmsg = self.CAN_bus.recv(0.1)
+        self.text_interfacetype.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+
+    def send_Test(self):
+        CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=[0x02, 0x3E, 0x00], extended_id=True, is_fd=True, bitrate_switch=True)
+
+        try:
+            self.CAN_bus.send(CAN_msg1)
+        except can.CanError:
+            print("Message not sent")
+        self.text_interfacetype.insertPlainText("sent: " + str(CAN_msg1) + "\n")
+        CAN_rtmsg = self.CAN_bus.recv(0.1)
+        self.text_interfacetype.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+
+        if len(CAN_rtmsg.data) != 0:
+            if CAN_rtmsg.data[0] == 0x7E:
+                self.test_result.setText("Module Connected")
+                CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=[0x03, 0x22, 0x10, 0x10], extended_id=True, is_fd=True, bitrate_switch=True)
+
+                try:
+                    self.CAN_bus.send(CAN_msg1)
+                except can.CanError:
+                    print("Message not sent")
+                self.text_interfacetype.insertPlainText("sent: " + str(CAN_msg1) + "\n")
+                CAN_rtmsg = self.CAN_bus.recv(0.1)
+                self.text_interfacetype.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+
+                if len(CAN_rtmsg.data) != 0:
+                    if CAN_rtmsg.data[0] == 0x62:
+                        self.build_date.setText(str(CAN_rtmsg[3])+'-'+str(CAN_rtmsg[4])+'-20'+str(CAN_rtmsg[5]))
+                    else:
+                        self.build_date.clear()
+
+            else:
+                self.test_result.setText("Module Not available")
+
+
 
 
 if __name__=='__main__':
