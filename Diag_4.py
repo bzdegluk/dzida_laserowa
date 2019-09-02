@@ -334,7 +334,7 @@ class Diagnostyk(QTabWidget):
             self.CAN_bus.send(self.CAN_msg2)
         except can.CanError:
             print("Message not sent")
-        self.text_interfacetype.insertPlainText("sent: " + str(self.CAN_msg1) + "\n")
+        self.text_interfacetype.insertPlainText("sent: " + str(self.CAN_msg2) + "\n")
         CAN_rtmsg = self.CAN_bus.recv(0.1)
         self.text_interfacetype.insertPlainText("received" + str(CAN_rtmsg) + "\n")
 
@@ -403,7 +403,7 @@ class Diagnostyk(QTabWidget):
         self.text_interfacetype.insertPlainText("received" + str(CAN_rtmsg) + "\n")
 
         if len(CAN_rtmsg.data) != 0:
-            if CAN_rtmsg.data[0] == 0x7E:
+            if CAN_rtmsg.data[1] == 0x7E:
                 self.test_result.setText("Module Connected")
                 CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=[0x03, 0x22, 0x10, 0x10], extended_id=True, is_fd=True, bitrate_switch=True)
 
@@ -416,7 +416,7 @@ class Diagnostyk(QTabWidget):
                 self.text_interfacetype.insertPlainText("received" + str(CAN_rtmsg) + "\n")
 
                 if len(CAN_rtmsg.data) != 0:
-                    if CAN_rtmsg.data[0] == 0x62:
+                    if CAN_rtmsg.data[1] == 0x62:
                         self.build_date.setText(str(CAN_rtmsg[3])+'-'+str(CAN_rtmsg[4])+'-20'+str(CAN_rtmsg[5]))
                     else:
                         self.build_date.clear()
