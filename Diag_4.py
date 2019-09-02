@@ -2,7 +2,7 @@ import sys
 import csv
 import can, struct
 from can.interfaces.vector.canlib import *
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import QThread, Qt
 from time import sleep
 from PyQt5.QtWidgets import QApplication, QWidget, QComboBox, QTabWidget, QPlainTextEdit, QProgressBar, QScrollBar, QSlider
@@ -284,8 +284,8 @@ class Diagnostyk(QTabWidget):
         self.text_interfacetype.insertPlainText("sent: " + str(self.CAN_msg1) + "\n")
         CAN_rtmsg = self.CAN_bus.recv(0.1)
         self.text_interfacetype.insertPlainText("received" + str(CAN_rtmsg) + "\n")
-        CAN_rtmsg = self.CAN_bus.recv(0.1)
-        self.text_interfacetype.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+#        CAN_rtmsg = self.CAN_bus.recv(0.1)
+#        self.text_interfacetype.insertPlainText("received" + str(CAN_rtmsg) + "\n")
 
     def receive_COMM(self):
 
@@ -377,8 +377,8 @@ class Diagnostyk(QTabWidget):
 
 #        print (CAN_rtmsg)
         if len(CAN_rtmsg.data) != 0:
-            if CAN_rtmsg.data[0] == 0x71:
-                self.adc_value.setText(str(CAN_rtmsg.data[4])+str(CAN_rtmsg.data[5]))
+            if CAN_rtmsg.data[1] == 0x71:
+                self.adc_value.setText(str(CAN_rtmsg.data[5])+str(CAN_rtmsg.data[6]))
 
     def send_Go_Sleep(self):
         CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=[0x04,0x31, 0x01, 0xFF, 0xA0], extended_id=True, is_fd=True, bitrate_switch=True)
@@ -431,4 +431,8 @@ if __name__=='__main__':
 
     app=QApplication(sys.argv)
     okno=Diagnostyk()
+#    w = QtGui.QWidget()
+#    tryicon = QtWidgets.QSystemTrayIcon(QtGui.QIcon('dzida.jpg'), w)
+#    tryicon.show()
+    app.setWindowIcon(QtGui.QIcon('dzida.jpg'))
     sys.exit(app.exec_())
