@@ -7,7 +7,7 @@ from PyQt5.QtCore import QThread, Qt
 from time import sleep
 from PyQt5.QtWidgets import QApplication, QWidget, QComboBox, QTabWidget, QPlainTextEdit, QProgressBar, QScrollBar, QSlider
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QLabel, QGridLayout
+from PyQt5.QtWidgets import QLabel, QGridLayout, QVBoxLayout
 from PyQt5.QtWidgets import QLineEdit, QPushButton, QHBoxLayout
 
 class Diagnostyk(QTabWidget):
@@ -115,6 +115,8 @@ class Diagnostyk(QTabWidget):
         self.test_result = QLineEdit(self)
         self.build_date = QLineEdit(self)
 
+        self.text_interfacetype_2 = QPlainTextEdit()
+
         self.combo_pwm_chanell = QComboBox(self)
         self.combo_pwm_chanell.addItem("LSD_1A")
         self.combo_pwm_chanell.addItem("Damper_1A")
@@ -135,48 +137,59 @@ class Diagnostyk(QTabWidget):
         self.combo_pwm_chanell.addItem("Force_FB_Acc_Pedal")
         self.combo_adc_chanell = QComboBox(self)
         self.combo_adc_chanell.addItem("Damper1B_fb")
+        self.combo_adc_chanell.addItem("Damper1B_P_FB")
+        self.combo_adc_chanell.addItem("Damper1B_N_FB")
+        self.combo_adc_chanell.addItem("Master_Aurix_KL15_Sense")
+        self.combo_adc_chanell.addItem("SENT_2_supply")
+        self.combo_adc_chanell.addItem("Damper2A_fb")
+        self.combo_adc_chanell.addItem("Damper2A_N_FB")
+        self.combo_adc_chanell.addItem("Damper2A_P_FB")
+        self.combo_adc_chanell.addItem("SENT_1_supply")
+        self.combo_adc_chanell.addItem("SBC_AMUX")
+        self.combo_adc_chanell.addItem("Damper2B_fb")
+        self.combo_adc_chanell.addItem("Damper2B_P_FB")
+        self.combo_adc_chanell.addItem("Damper2B_N_FB")
+        self.combo_adc_chanell.addItem("PF_AMUX")
+        self.combo_adc_chanell.addItem("RCAR_MAIN_SUPPLY_PGOOD")
+        self.combo_adc_chanell.addItem("SENSE_HSD_VBAT_DAMPER")
+        self.combo_adc_chanell.addItem("KL30A_2_VOLT")
+        self.combo_adc_chanell.addItem("Damper3A_N_FB")
+        self.combo_adc_chanell.addItem("Damper3A_P_FB")
+        self.combo_adc_chanell.addItem("Damper3B_P_FB")
+        self.combo_adc_chanell.addItem("Damper3B_N_FB")
+        self.combo_adc_chanell.addItem("Pedal_Low_FB")
+        self.combo_adc_chanell.addItem("Damper4B_N_FB")
+        self.combo_adc_chanell.addItem("KL30A_1_Curr")
+        self.combo_adc_chanell.addItem("Damper_LSD_ERR")
+        self.combo_adc_chanell.addItem("KL30A_2_Curr")
+        self.combo_adc_chanell.addItem("Damper4B_fb")
+        self.combo_adc_chanell.addItem("Damper1A_fb")
+        self.combo_adc_chanell.addItem("Damper1A_N_FB")
+        self.combo_adc_chanell.addItem("Damper1A_P_FB")
+        self.combo_adc_chanell.addItem("Damper4A_fb")
+        self.combo_adc_chanell.addItem("Damper4A_N_FB")
+        self.combo_adc_chanell.addItem("TEMP_VREF")
+        self.combo_adc_chanell.addItem("BLS")
+        self.combo_adc_chanell.addItem("KL30A_1_VOLT")
+        self.combo_adc_chanell.addItem("Damper4A_P_FB")
+        self.combo_adc_chanell.addItem("Force_FB_Acc_Pedal")
+        self.combo_adc_chanell.addItem("FORCE_FB_SENSE")
+        self.combo_adc_chanell.addItem("Master_Aurix_KL15_Sense2")
         self.combo_adc_chanell.addItem("Damper1B_fb")
         self.combo_adc_chanell.addItem("Damper1B_fb")
         self.combo_adc_chanell.addItem("Damper1B_fb")
         self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
+#        self.combo_gpio_port = QComboBox(self)
+#        self.combo_gpio_port.addItem("DO_SREG_OUT_ENABLE")
+#        self.combo_gpio_port.addItem("Master_Aurix_Power_EN")
+#        self.combo_gpio_port.addItem("Force_FB_Acc_Pedal_DIAG_EN")
+#        self.combo_gpio_port.addItem("Force_FB_Acc_Pedal_EN")
+#        self.combo_gpio_port.addItem("DO_BLS_PU_enable")
+#        self.combo_gpio_port.addItem("CAN3_EN")
+#        horiz_group_1 = QHBoxLayout()
+#        horiz_group_1.addWidget(button_test,0)
+#        horiz_group_1.addWidget(self.test_result, 0)
+#        horiz_group_1.addWidget(self.build_date, 0)
 
         ukladT2 = QGridLayout()
         ukladT2.addWidget(button_test,0 ,0)
@@ -196,7 +209,12 @@ class Diagnostyk(QTabWidget):
         ukladT2.addWidget(button_adc_get,3,2)
         ukladT2.addWidget(self.adc_value,3,3)
         ukladT2.addWidget(button_sleep,4,0)
+        ukladT2.addWidget(self.text_interfacetype_2, 5, 0, 1, 5)
 
+#        layout = QVBoxLayout()
+#        layout.addWidget(horiz_group_1)
+#        layout.addWidget(ukladT2)
+#        self.tab2.setLayout(horiz_group_1)
         self.tab2.setLayout(ukladT2)
 
         button_gpio_set.clicked.connect(self.GPIO_set)
@@ -327,16 +345,16 @@ class Diagnostyk(QTabWidget):
             self.CAN_bus.send(self.CAN_msg1)
         except can.CanError:
             print("Message not sent")
-        self.text_interfacetype.insertPlainText("sent: " + str(self.CAN_msg1) + "\n")
+        self.text_interfacetype_2.insertPlainText("sent: " + str(self.CAN_msg1.data) + "\n")
         CAN_rtmsg = self.CAN_bus.recv(0.1)
-        self.text_interfacetype.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+        self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg.data) + "\n")
         try:
             self.CAN_bus.send(self.CAN_msg2)
         except can.CanError:
             print("Message not sent")
-        self.text_interfacetype.insertPlainText("sent: " + str(self.CAN_msg2) + "\n")
+        self.text_interfacetype_2.insertPlainText("sent: " + str(self.CAN_msg2.data) + "\n")
         CAN_rtmsg = self.CAN_bus.recv(0.1)
-        self.text_interfacetype.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+        self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg.data) + "\n")
 
     def send_PWM_Set(self):
         channel = self.combo_pwm_chanell.currentIndex()
@@ -355,9 +373,9 @@ class Diagnostyk(QTabWidget):
             self.CAN_bus.send(CAN_msg1)
         except can.CanError:
             print("Message not sent")
-        self.text_interfacetype.insertPlainText("sent: " + str(CAN_msg1) + "\n")
+        self.text_interfacetype_2.insertPlainText("sent: " + str(CAN_msg1.data) + "\n")
         CAN_rtmsg = self.CAN_bus.recv(0.1)
-        self.text_interfacetype.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+        self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg.data) + "\n")
 
     def send_ADC_Read(self):
         channel = self.combo_adc_chanell.currentIndex()
@@ -371,9 +389,9 @@ class Diagnostyk(QTabWidget):
             self.CAN_bus.send(CAN_msg1)
         except can.CanError:
             print("Message not sent")
-        self.text_interfacetype.insertPlainText("sent: " + str(CAN_msg1) + "\n")
+        self.text_interfacetype_2.insertPlainText("sent: " + str(CAN_msg1.data) + "\n")
         CAN_rtmsg = self.CAN_bus.recv(0.1)
-        self.text_interfacetype.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+        self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg.data) + "\n")
 
 #        print (CAN_rtmsg)
         if len(CAN_rtmsg.data) != 0:
@@ -387,9 +405,9 @@ class Diagnostyk(QTabWidget):
             self.CAN_bus.send(CAN_msg1)
         except can.CanError:
             print("Message not sent")
-        self.text_interfacetype.insertPlainText("sent: " + str(CAN_msg1) + "\n")
+        self.text_interfacetype_2.insertPlainText("sent: " + str(CAN_msg1.data) + "\n")
         CAN_rtmsg = self.CAN_bus.recv(0.1)
-        self.text_interfacetype.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+        self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg.data) + "\n")
 
     def send_Test(self):
         CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=[0x02, 0x3E, 0x00], extended_id=True, is_fd=True, bitrate_switch=True)
@@ -398,9 +416,9 @@ class Diagnostyk(QTabWidget):
             self.CAN_bus.send(CAN_msg1)
         except can.CanError:
             print("Message not sent")
-        self.text_interfacetype.insertPlainText("sent: " + str(CAN_msg1) + "\n")
+        self.text_interfacetype_2.insertPlainText("sent: " + str(CAN_msg1.data) + "\n")
         CAN_rtmsg = self.CAN_bus.recv(0.1)
-        self.text_interfacetype.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+        self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg.data) + "\n")
 
         if len(CAN_rtmsg.data) != 0:
             if CAN_rtmsg.data[1] == 0x7E:
@@ -411,9 +429,9 @@ class Diagnostyk(QTabWidget):
                     self.CAN_bus.send(CAN_msg1)
                 except can.CanError:
                     print("Message not sent")
-                self.text_interfacetype.insertPlainText("sent: " + str(CAN_msg1) + "\n")
+                self.text_interfacetype_2.insertPlainText("sent: " + str(CAN_msg1.data) + "\n")
                 CAN_rtmsg = self.CAN_bus.recv(0.1)
-                self.text_interfacetype.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+                self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg.data) + "\n")
 
                 if len(CAN_rtmsg.data) != 0:
                     if CAN_rtmsg.data[1] == 0x62:
@@ -435,4 +453,5 @@ if __name__=='__main__':
 #    tryicon = QtWidgets.QSystemTrayIcon(QtGui.QIcon('dzida.jpg'), w)
 #    tryicon.show()
     app.setWindowIcon(QtGui.QIcon('dzida.jpg'))
+    app.setStyle('Fusion')
     sys.exit(app.exec_())
