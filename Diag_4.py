@@ -109,8 +109,10 @@ class Diagnostyk(QTabWidget):
         self.gpio_comm = QLineEdit(self)
         self.gpio_comm.setInputMask('999-99')
         self.pwm_freq = QLineEdit(self)
+        self.pwm_freq.setText("25")
 #        self.pwm_freq.setInputMask('999999')
         self.pwm_duty = QLineEdit(self)
+        self.pwm_duty.setText("50")
 #        self.pwm_duty.setInputMask('999')
         self.adc_value = QLineEdit(self)
         self.test_result = QLineEdit(self)
@@ -162,6 +164,7 @@ class Diagnostyk(QTabWidget):
         self.combo_adc_chanell.addItem("Damper4B_N_FB")
         self.combo_adc_chanell.addItem("KL30A_1_Curr")
         self.combo_adc_chanell.addItem("Damper_LSD_ERR")
+        self.combo_adc_chanell.addItem("Reserved do not use")
         self.combo_adc_chanell.addItem("KL30A_2_Curr")
         self.combo_adc_chanell.addItem("Damper4B_fb")
         self.combo_adc_chanell.addItem("Damper1A_fb")
@@ -227,7 +230,7 @@ class Diagnostyk(QTabWidget):
         button_test.clicked.connect(self.send_Test)
 
         self.setGeometry(20, 20, 600, 600)
-        self.setWindowTitle("Dzida Laserowa #<--->#             beta 0.2")
+        self.setWindowTitle("Dzida Laserowa #<--->#             beta 0.3")
         self.move(150, 150)
         self.show()
 
@@ -255,6 +258,8 @@ class Diagnostyk(QTabWidget):
             except can.CanError:
                 print("Message not sent")
             CAN_rtmsg2 = self.CAN_bus.recv(0.1)
+            while CAN_rtmsg2 != None:
+                CAN_rtmsg2 = self.CAN_bus.recv(0.1)
 
             #        self.timer.start(1000)
          #   CAN_rtmsg = self.CAN_bus.recv(0.1)
@@ -308,6 +313,8 @@ class Diagnostyk(QTabWidget):
 #        CAN_rtmsg = self.CAN_bus.recv(0.1)
 #        self.text_interfacetype.insertPlainText("received" + str(CAN_rtmsg) + "\n")
         CAN_rtmsg2 = self.CAN_bus.recv(0.1)
+        while CAN_rtmsg2 != None:
+            CAN_rtmsg2 = self.CAN_bus.recv(0.1)
 
     def receive_COMM(self):
 
@@ -360,6 +367,8 @@ class Diagnostyk(QTabWidget):
         CAN_rtmsg = self.CAN_bus.recv(0.1)
         self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg) + "\n")
         CAN_rtmsg2 = self.CAN_bus.recv(0.1)
+        while CAN_rtmsg2 != None:
+            CAN_rtmsg2 = self.CAN_bus.recv(0.1)
 
     def send_PWM_Set(self):
         channel = self.combo_pwm_chanell.currentIndex()
@@ -382,6 +391,8 @@ class Diagnostyk(QTabWidget):
         CAN_rtmsg = self.CAN_bus.recv(0.1)
         self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg) + "\n")
         CAN_rtmsg2 = self.CAN_bus.recv(0.1)
+        while CAN_rtmsg2 != None:
+            CAN_rtmsg2 = self.CAN_bus.recv(0.1)
 
     def send_ADC_Read(self):
         channel = self.combo_adc_chanell.currentIndex()
@@ -404,6 +415,8 @@ class Diagnostyk(QTabWidget):
             if CAN_rtmsg.data[1] == 0x71:
                 self.adc_value.setText(str(CAN_rtmsg.data[5])+str(CAN_rtmsg.data[6]))
         CAN_rtmsg2 = self.CAN_bus.recv(0.1)
+        while CAN_rtmsg2 != None:
+            CAN_rtmsg2 = self.CAN_bus.recv(0.1)
 
     def send_Go_Sleep(self):
         CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=[0x04,0x31, 0x01, 0xFF, 0xA0], extended_id=True, is_fd=True, bitrate_switch=True)
@@ -416,6 +429,8 @@ class Diagnostyk(QTabWidget):
         CAN_rtmsg = self.CAN_bus.recv(0.1)
         self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg) + "\n")
         CAN_rtmsg2 = self.CAN_bus.recv(0.1)
+        while CAN_rtmsg2 != None:
+            CAN_rtmsg2 = self.CAN_bus.recv(0.1)
 
     def send_Test(self):
         CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=[0x02, 0x3E, 0x00], extended_id=True, is_fd=True, bitrate_switch=True)
@@ -432,6 +447,8 @@ class Diagnostyk(QTabWidget):
             if CAN_rtmsg.data[1] == 0x7E:
                 self.test_result.setText("Module Connected")
                 CAN_rtmsg2 = self.CAN_bus.recv(0.1)
+                while CAN_rtmsg2 != None:
+                    CAN_rtmsg2 = self.CAN_bus.recv(0.1)
                 CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=[0x03, 0x22, 0x10, 0x10], extended_id=True, is_fd=True, bitrate_switch=True)
 
                 try:
@@ -449,6 +466,8 @@ class Diagnostyk(QTabWidget):
                     else:
                         self.build_date.clear()
                 CAN_rtmsg2 = self.CAN_bus.recv(0.1)
+                while CAN_rtmsg2 != None:
+                    CAN_rtmsg2 = self.CAN_bus.recv(0.1)
 
             else:
                 self.test_result.setText("Module Not available")
