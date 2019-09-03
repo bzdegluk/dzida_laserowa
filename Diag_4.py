@@ -96,6 +96,7 @@ class Diagnostyk(QTabWidget):
         label_SetGPIO = QLabel("Set GPIO", self)
         labe_SetPWM = QLabel("Set PWM freq and duty",self)
         label_ReadADC = QLabel("Read ADC value",self)
+        label_BuildDate = QLabel("Core IO build Date",self)
 
         button_gpio_set = QPushButton("&Set GPIO",self)
         button_gpio_reset = QPushButton("&Reset GPIO",self)
@@ -195,6 +196,7 @@ class Diagnostyk(QTabWidget):
         ukladT2.addWidget(button_test,0 ,0)
         ukladT2.addWidget(self.test_result, 0, 1)
         ukladT2.addWidget(self.build_date, 0, 2)
+        ukladT2.addWidget(label_BuildDate, 0, 3)
         ukladT2.addWidget(label_SetGPIO,1,0)
         ukladT2.addWidget(self.gpio_comm,1,1)
         ukladT2.addWidget(button_gpio_set,1,2)
@@ -252,6 +254,7 @@ class Diagnostyk(QTabWidget):
                 self.CAN_bus.send(self.CAN_msg1)
             except can.CanError:
                 print("Message not sent")
+            CAN_rtmsg2 = self.CAN_bus.recv(0.1)
 
             #        self.timer.start(1000)
          #   CAN_rtmsg = self.CAN_bus.recv(0.1)
@@ -304,6 +307,7 @@ class Diagnostyk(QTabWidget):
         self.text_interfacetype.insertPlainText("received" + str(CAN_rtmsg) + "\n")
 #        CAN_rtmsg = self.CAN_bus.recv(0.1)
 #        self.text_interfacetype.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+        CAN_rtmsg2 = self.CAN_bus.recv(0.1)
 
     def receive_COMM(self):
 
@@ -345,16 +349,17 @@ class Diagnostyk(QTabWidget):
             self.CAN_bus.send(self.CAN_msg1)
         except can.CanError:
             print("Message not sent")
-        self.text_interfacetype_2.insertPlainText("sent: " + str(self.CAN_msg1.data) + "\n")
+        self.text_interfacetype_2.insertPlainText("sent: " + str(self.CAN_msg1) + "\n")
         CAN_rtmsg = self.CAN_bus.recv(0.1)
-        self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg.data) + "\n")
+        self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg) + "\n")
         try:
             self.CAN_bus.send(self.CAN_msg2)
         except can.CanError:
             print("Message not sent")
-        self.text_interfacetype_2.insertPlainText("sent: " + str(self.CAN_msg2.data) + "\n")
+        self.text_interfacetype_2.insertPlainText("sent: " + str(self.CAN_msg2) + "\n")
         CAN_rtmsg = self.CAN_bus.recv(0.1)
-        self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg.data) + "\n")
+        self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+        CAN_rtmsg2 = self.CAN_bus.recv(0.1)
 
     def send_PWM_Set(self):
         channel = self.combo_pwm_chanell.currentIndex()
@@ -373,9 +378,10 @@ class Diagnostyk(QTabWidget):
             self.CAN_bus.send(CAN_msg1)
         except can.CanError:
             print("Message not sent")
-        self.text_interfacetype_2.insertPlainText("sent: " + str(CAN_msg1.data) + "\n")
+        self.text_interfacetype_2.insertPlainText("sent: " + str(CAN_msg1) + "\n")
         CAN_rtmsg = self.CAN_bus.recv(0.1)
-        self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg.data) + "\n")
+        self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+        CAN_rtmsg2 = self.CAN_bus.recv(0.1)
 
     def send_ADC_Read(self):
         channel = self.combo_adc_chanell.currentIndex()
@@ -389,14 +395,15 @@ class Diagnostyk(QTabWidget):
             self.CAN_bus.send(CAN_msg1)
         except can.CanError:
             print("Message not sent")
-        self.text_interfacetype_2.insertPlainText("sent: " + str(CAN_msg1.data) + "\n")
+        self.text_interfacetype_2.insertPlainText("sent: " + str(CAN_msg1) + "\n")
         CAN_rtmsg = self.CAN_bus.recv(0.1)
-        self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg.data) + "\n")
+        self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg) + "\n")
 
 #        print (CAN_rtmsg)
         if len(CAN_rtmsg.data) != 0:
             if CAN_rtmsg.data[1] == 0x71:
                 self.adc_value.setText(str(CAN_rtmsg.data[5])+str(CAN_rtmsg.data[6]))
+        CAN_rtmsg2 = self.CAN_bus.recv(0.1)
 
     def send_Go_Sleep(self):
         CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=[0x04,0x31, 0x01, 0xFF, 0xA0], extended_id=True, is_fd=True, bitrate_switch=True)
@@ -405,9 +412,10 @@ class Diagnostyk(QTabWidget):
             self.CAN_bus.send(CAN_msg1)
         except can.CanError:
             print("Message not sent")
-        self.text_interfacetype_2.insertPlainText("sent: " + str(CAN_msg1.data) + "\n")
+        self.text_interfacetype_2.insertPlainText("sent: " + str(CAN_msg1) + "\n")
         CAN_rtmsg = self.CAN_bus.recv(0.1)
-        self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg.data) + "\n")
+        self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+        CAN_rtmsg2 = self.CAN_bus.recv(0.1)
 
     def send_Test(self):
         CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=[0x02, 0x3E, 0x00], extended_id=True, is_fd=True, bitrate_switch=True)
@@ -416,28 +424,31 @@ class Diagnostyk(QTabWidget):
             self.CAN_bus.send(CAN_msg1)
         except can.CanError:
             print("Message not sent")
-        self.text_interfacetype_2.insertPlainText("sent: " + str(CAN_msg1.data) + "\n")
+        self.text_interfacetype_2.insertPlainText("sent: " + str(CAN_msg1) + "\n")
         CAN_rtmsg = self.CAN_bus.recv(0.1)
-        self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg.data) + "\n")
+        self.text_interfacetype_2.insertPlainText("received: " + str(CAN_rtmsg) + "\n")
 
         if len(CAN_rtmsg.data) != 0:
             if CAN_rtmsg.data[1] == 0x7E:
                 self.test_result.setText("Module Connected")
+                CAN_rtmsg2 = self.CAN_bus.recv(0.1)
                 CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=[0x03, 0x22, 0x10, 0x10], extended_id=True, is_fd=True, bitrate_switch=True)
 
                 try:
                     self.CAN_bus.send(CAN_msg1)
                 except can.CanError:
                     print("Message not sent")
-                self.text_interfacetype_2.insertPlainText("sent: " + str(CAN_msg1.data) + "\n")
+                self.text_interfacetype_2.insertPlainText("sent: " + str(CAN_msg1) + "\n")
                 CAN_rtmsg = self.CAN_bus.recv(0.1)
-                self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg.data) + "\n")
+                self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg) + "\n")
 
                 if len(CAN_rtmsg.data) != 0:
-                    if CAN_rtmsg.data[1] == 0x62:
-                        self.build_date.setText(str(CAN_rtmsg[3])+'-'+str(CAN_rtmsg[4])+'-20'+str(CAN_rtmsg[5]))
+                    if CAN_rtmsg.data[2] == 0x62:
+                        self.build_date.setText(str(CAN_rtmsg.data[5])+'-'+str(CAN_rtmsg.data[6])+'-20'+str(CAN_rtmsg.data[7]))
+#                        print("nothing")
                     else:
                         self.build_date.clear()
+                CAN_rtmsg2 = self.CAN_bus.recv(0.1)
 
             else:
                 self.test_result.setText("Module Not available")
