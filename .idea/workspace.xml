@@ -235,7 +235,14 @@
       <option name="project" value="LOCAL" />
       <updated>1567458169551</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="analog list upd">
+      <created>1567506289296</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1567506289296</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TodoView">
@@ -327,7 +334,8 @@
     <MESSAGE value=" check second data val" />
     <MESSAGE value="tray icon" />
     <MESSAGE value="analog list" />
-    <option name="LAST_COMMIT_MESSAGE" value="analog list" />
+    <MESSAGE value="analog list upd" />
+    <option name="LAST_COMMIT_MESSAGE" value="analog list upd" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
