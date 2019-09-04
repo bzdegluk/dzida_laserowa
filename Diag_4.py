@@ -120,6 +120,7 @@ class Diagnostyk(QTabWidget):
 
         self.text_interfacetype_2 = QPlainTextEdit()
 
+
         self.combo_pwm_chanell = QComboBox(self)
         self.combo_pwm_chanell.addItem("LSD_1A")
         self.combo_pwm_chanell.addItem("Damper_1A")
@@ -154,11 +155,14 @@ class Diagnostyk(QTabWidget):
         self.combo_adc_chanell.addItem("Damper2B_N_FB")
         self.combo_adc_chanell.addItem("PF_AMUX")
         self.combo_adc_chanell.addItem("RCAR_MAIN_SUPPLY_PGOOD")
+        self.combo_adc_chanell.addItem("Damper3A_fb")
         self.combo_adc_chanell.addItem("SENSE_HSD_VBAT_DAMPER")
         self.combo_adc_chanell.addItem("KL30A_2_VOLT")
         self.combo_adc_chanell.addItem("Damper3A_N_FB")
         self.combo_adc_chanell.addItem("Damper3A_P_FB")
+        self.combo_adc_chanell.addItem("Damper3B_fb")
         self.combo_adc_chanell.addItem("Damper3B_P_FB")
+        self.combo_adc_chanell.addItem("Damper4B_P_FB")
         self.combo_adc_chanell.addItem("Damper3B_N_FB")
         self.combo_adc_chanell.addItem("Pedal_Low_FB")
         self.combo_adc_chanell.addItem("Damper4B_N_FB")
@@ -179,10 +183,7 @@ class Diagnostyk(QTabWidget):
         self.combo_adc_chanell.addItem("Force_FB_Acc_Pedal")
         self.combo_adc_chanell.addItem("FORCE_FB_SENSE")
         self.combo_adc_chanell.addItem("Master_Aurix_KL15_Sense2")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
-        self.combo_adc_chanell.addItem("Damper1B_fb")
+
 #        self.combo_gpio_port = QComboBox(self)
 #        self.combo_gpio_port.addItem("DO_SREG_OUT_ENABLE")
 #        self.combo_gpio_port.addItem("Master_Aurix_Power_EN")
@@ -258,8 +259,11 @@ class Diagnostyk(QTabWidget):
             except can.CanError:
                 print("Message not sent")
             CAN_rtmsg2 = self.CAN_bus.recv(0.1)
-            while CAN_rtmsg2 != None:
-                CAN_rtmsg2 = self.CAN_bus.recv(0.1)
+            self.CAN_bus.flush_tx_buffer()
+#            while CAN_rtmsg2 != None:
+#            while len(CAN_rtmsg2.data) > 0:
+#                CAN_rtmsg2 = self.CAN_bus.recv(0.1)
+            print("dodone")
 
             #        self.timer.start(1000)
          #   CAN_rtmsg = self.CAN_bus.recv(0.1)
@@ -313,8 +317,8 @@ class Diagnostyk(QTabWidget):
 #        CAN_rtmsg = self.CAN_bus.recv(0.1)
 #        self.text_interfacetype.insertPlainText("received" + str(CAN_rtmsg) + "\n")
         CAN_rtmsg2 = self.CAN_bus.recv(0.1)
-        while CAN_rtmsg2 != None:
-            CAN_rtmsg2 = self.CAN_bus.recv(0.1)
+#        while CAN_rtmsg2 != None:
+#            CAN_rtmsg2 = self.CAN_bus.recv(0.1)
 
     def receive_COMM(self):
 
@@ -367,8 +371,8 @@ class Diagnostyk(QTabWidget):
         CAN_rtmsg = self.CAN_bus.recv(0.1)
         self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg) + "\n")
         CAN_rtmsg2 = self.CAN_bus.recv(0.1)
-        while CAN_rtmsg2 != None:
-            CAN_rtmsg2 = self.CAN_bus.recv(0.1)
+#        while CAN_rtmsg2 != None:
+#            CAN_rtmsg2 = self.CAN_bus.recv(0.1)
 
     def send_PWM_Set(self):
         channel = self.combo_pwm_chanell.currentIndex()
@@ -409,11 +413,13 @@ class Diagnostyk(QTabWidget):
         self.text_interfacetype_2.insertPlainText("sent: " + str(CAN_msg1) + "\n")
         CAN_rtmsg = self.CAN_bus.recv(0.1)
         self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+        self.text_interfacetype_2.moveCursor(QtGui.QTextCursor.End)
 
 #        print (CAN_rtmsg)
         if len(CAN_rtmsg.data) != 0:
             if CAN_rtmsg.data[1] == 0x71:
-                self.adc_value.setText(str(CAN_rtmsg.data[5])+str(CAN_rtmsg.data[6]))
+#                self.adc_value.setText(str(CAN_rtmsg.data[5])+str(CAN_rtmsg.data[6]))
+                self.adc_value.setText(str((CAN_rtmsg.data[5]*256)+CAN_rtmsg.data[6]))
         CAN_rtmsg2 = self.CAN_bus.recv(0.1)
         while CAN_rtmsg2 != None:
             CAN_rtmsg2 = self.CAN_bus.recv(0.1)
@@ -428,6 +434,7 @@ class Diagnostyk(QTabWidget):
         self.text_interfacetype_2.insertPlainText("sent: " + str(CAN_msg1) + "\n")
         CAN_rtmsg = self.CAN_bus.recv(0.1)
         self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+        self.CAN_bus.flush_tx_buffer()
         CAN_rtmsg2 = self.CAN_bus.recv(0.1)
         while CAN_rtmsg2 != None:
             CAN_rtmsg2 = self.CAN_bus.recv(0.1)
@@ -456,8 +463,10 @@ class Diagnostyk(QTabWidget):
                 except can.CanError:
                     print("Message not sent")
                 self.text_interfacetype_2.insertPlainText("sent: " + str(CAN_msg1) + "\n")
+                self.text_interfacetype_2.moveCursor(QtGui.QTextCursor.End)
                 CAN_rtmsg = self.CAN_bus.recv(0.1)
                 self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+                self.text_interfacetype_2.moveCursor(QtGui.QTextCursor.End)
 
                 if len(CAN_rtmsg.data) != 0:
                     if CAN_rtmsg.data[2] == 0x62:
