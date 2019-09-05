@@ -109,7 +109,7 @@ class Diagnostyk(QTabWidget):
         self.gpio_comm = QLineEdit(self)
         self.gpio_comm.setInputMask('999-99')
         self.pwm_freq = QLineEdit(self)
-        self.pwm_freq.setText("25")
+        self.pwm_freq.setText("25000")
 #        self.pwm_freq.setInputMask('999999')
         self.pwm_duty = QLineEdit(self)
         self.pwm_duty.setText("50")
@@ -379,14 +379,22 @@ class Diagnostyk(QTabWidget):
         duty = int(self.pwm_duty.text())
         freq = int(self.pwm_freq.text())
         print(str(channel) + ' ' + str(freq) + ' ' + str(duty))
-        command_pwm = [0x07, 0x31, 0x01, 0x1B, 0x00]
+        command_pwm = [0x10, 0x08, 0x31, 0x01, 0x1B, 0x00]
         command_pwm.append(channel)
         command_pwm.append(duty)
-        command_pwm.append(freq >> 24)
-        command_pwm.append((freq )>> 24)
-        print (command_pwm)
-
         CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=command_pwm, extended_id=True, is_fd=True, bitrate_switch=True)
+        print(command_pwm)
+        command_pwm_2 = [0x21]
+        command_pwm_2.append(freq >> 24)
+        command_pwm_2.append((freq & 0xFFFFFF )>> 16)
+        command_pwm_2.append((freq & 0xFFFF) >> 8)
+        command_pwm_2.append(freq & 0xFF)
+        command_pwm_2.append(0x00)
+        command_pwm_2.append(0x00)
+        command_pwm_2.append(0x00)
+        print(command_pwm_2)
+
+        CAN_msg2 = can.Message(arbitration_id=0x18DA0000, data=command_pwm_2, extended_id=True, is_fd=True, bitrate_switch=True)
 
         try:
             self.CAN_bus.send(CAN_msg1)
@@ -395,6 +403,15 @@ class Diagnostyk(QTabWidget):
         self.text_interfacetype_2.insertPlainText("sent: " + str(CAN_msg1) + "\n")
         CAN_rtmsg = self.CAN_bus.recv(0.1)
         self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+
+        try:
+            self.CAN_bus.send(CAN_msg2)
+        except can.CanError:
+            print("Message not sent")
+        self.text_interfacetype_2.insertPlainText("sent: " + str(CAN_msg2) + "\n")
+        CAN_rtmsg = self.CAN_bus.recv(0.1)
+        self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+
         CAN_rtmsg2 = self.CAN_bus.recv(0.1)
         while CAN_rtmsg2 != None:
             CAN_rtmsg2 = self.CAN_bus.recv(0.1)
