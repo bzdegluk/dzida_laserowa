@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="2ad9b078-5641-4a6b-b1d5-e8c21334a7e5" name="Default" comment="Tester presence&#10;delete pending message">
+    <list default="true" id="2ad9b078-5641-4a6b-b1d5-e8c21334a7e5" name="Default" comment="ADC corrected&#10;PWM still not OK">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Diag_4.py" beforeDir="false" afterPath="$PROJECT_DIR$/Diag_4.py" afterDir="false" />
     </list>
@@ -127,7 +127,14 @@
       <option name="project" value="LOCAL" />
       <updated>1567524692577</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="ADC corrected&#10;PWM still not OK">
+      <created>1567613795080</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1567613795080</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -150,6 +157,7 @@
     <MESSAGE value="analog list" />
     <MESSAGE value="analog list upd" />
     <MESSAGE value="Tester presence&#10;delete pending message" />
-    <option name="LAST_COMMIT_MESSAGE" value="Tester presence&#10;delete pending message" />
+    <MESSAGE value="ADC corrected&#10;PWM still not OK" />
+    <option name="LAST_COMMIT_MESSAGE" value="ADC corrected&#10;PWM still not OK" />
   </component>
 </project>

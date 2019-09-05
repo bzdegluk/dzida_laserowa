@@ -207,8 +207,8 @@ class Diagnostyk(QTabWidget):
         ukladT2.addWidget(button_gpio_reset,1,3)
         ukladT2.addWidget(labe_SetPWM,2,0)
         ukladT2.addWidget(self.combo_pwm_chanell,2,1)
-        ukladT2.addWidget(self.pwm_freq,2,2)
-        ukladT2.addWidget(self.pwm_duty,2,3)
+        ukladT2.addWidget(self.pwm_duty, 2, 2)
+        ukladT2.addWidget(self.pwm_freq,2,3)
         ukladT2.addWidget(button_pmw_set,2,4)
         ukladT2.addWidget(label_ReadADC,3,0)
         ukladT2.addWidget(self.combo_adc_chanell,3,1)
@@ -376,13 +376,14 @@ class Diagnostyk(QTabWidget):
 
     def send_PWM_Set(self):
         channel = self.combo_pwm_chanell.currentIndex()
-        freq = int(self.pwm_freq.text())
         duty = int(self.pwm_duty.text())
+        freq = int(self.pwm_freq.text())
         print(str(channel) + ' ' + str(freq) + ' ' + str(duty))
         command_pwm = [0x07, 0x31, 0x01, 0x1B, 0x00]
         command_pwm.append(channel)
-        command_pwm.append(freq)
         command_pwm.append(duty)
+        command_pwm.append(freq >> 24)
+        command_pwm.append((freq )>> 24)
         print (command_pwm)
 
         CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=command_pwm, extended_id=True, is_fd=True, bitrate_switch=True)
