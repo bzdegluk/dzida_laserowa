@@ -379,7 +379,7 @@ class Diagnostyk(QTabWidget):
         duty = int(self.pwm_duty.text())
         freq = int(self.pwm_freq.text())
         print(str(channel) + ' ' + str(freq) + ' ' + str(duty))
-        command_pwm = [0x10, 0x08, 0x31, 0x01, 0x1B, 0x00]
+        command_pwm = [0x10, 0x0A, 0x31, 0x01, 0x1B, 0x00]
         command_pwm.append(channel)
         command_pwm.append(duty)
         CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=command_pwm, extended_id=True, is_fd=True, bitrate_switch=True)
