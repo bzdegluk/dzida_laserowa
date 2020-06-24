@@ -1,27 +1,89 @@
 import sys
 import csv
+from UDS import UDS
+from UDS import *
 import can, struct
 from can.interfaces.vector.canlib import *
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import QThread, Qt
 from time import sleep
-from PyQt5.QtWidgets import QApplication, QWidget, QComboBox, QTabWidget, QPlainTextEdit, QProgressBar, QScrollBar, QSlider
+from PyQt5.QtWidgets import QApplication, QWidget, QComboBox, QTabWidget, QPlainTextEdit, QProgressBar, QScrollBar, QSlider, QMainWindow, QGroupBox
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QLabel, QGridLayout, QVBoxLayout
 from PyQt5.QtWidgets import QLineEdit, QPushButton, QHBoxLayout
+from PyQt5.QtCore import QSize, QRegExp
+from PyQt5.QtGui import QRegExpValidator
+import socket
+import pickle
+
+frame = {
+    "timestamp" : 0.0,
+    "arbitration_id" : 0x18DA0000,
+    "extended_id" : True,
+    "is_remote_frame" : False,
+    "is_error_frame" : False,
+    "channel" : None,
+    "dlc" : None,
+    "data" : None,
+    "is_fd": True,
+    "bitrate_switch" : True,
+    "error_state_indicator" : False,
+    "extended_id" : True,
+    "check" : False
+}
+
+class App(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setGeometry(20, 20, 800, 800)
+        self.move(60, 60)
+        self.setWindowTitle("Dzida Laserowa #<--->#             beta 1.0")
+
+        self.text_int = QPlainTextEdit()
+        self.text_int.insertPlainText("CAN interface disconnected ... \n")
+        wind_lay = QVBoxLayout()
+        self.group = QGroupBox()
+        main_uklad = QGridLayout()
+        tab_widget = Diagnostyk(self, window=self.text_int)
+#        self.setCentralWidget(self.tab_widget)
+#        self.text_int = QPlainTextEdit()
+        label_interfacetype = QLabel("CAN Interface Type", self)
+#        self.setCentralWidget(self.text_int)
+        main_uklad.addWidget(tab_widget, 0, 0)
+        main_uklad.addWidget(self.text_int, 1, 0)
+        main_uklad.addWidget(label_interfacetype, 2, 0)
+        self.group.setLayout(main_uklad)
+#        wind_lay.addWidget(self.group)
+#        self.setLayout(main_uklad)
+        self.setCentralWidget(self.group)
+
+        self.show()
 
 class Diagnostyk(QTabWidget):
-    def __init__(self, parent=None):
+    def __init__(self, parent, window):
         super().__init__(parent)
+
+        self.window = window
+#        self.window.insertPlainText("  dupa2")
+
+        self.uds = UDS()
 
         self.tab1 = QWidget()
         self.tab2 = QWidget()
+        self.tab3 = QWidget()
+#        self.text_int = QPlainTextEdit()
 
         self.addTab(self.tab1, "CAN CONFIG")
         self.addTab(self.tab2, "HCP1 CONTROL")
+        self.addTab(self.tab3, "RASPI CAN")
+
 
         self.interfejs()
         self.interfejs2()
+        self.interfejs3()
+
+#        self.comm_to_send.setText([0x31, 0x01, 0xFC, 0x02, 0x0E, 0x00, 0x02, 0x18, 0x00])
+        self.comm_to_send.setText("31-01-FC-02-0E-00-02-18-00")
 
     def interfejs(self):
         label_interfacetype = QLabel("CAN Interface Type", self)
@@ -38,6 +100,14 @@ class Diagnostyk(QTabWidget):
         self.combo_interfacechannel = QComboBox(self)
         self.combo_interfacechannel.addItem("1")
         self.combo_interfacechannel.addItem("2")
+        self.combo_interfacechannel.addItem("3")
+        self.combo_interfacechannel.addItem("4")
+        self.combo_interfacechannel.addItem("5")
+        self.combo_interfacechannel.addItem("6")
+        self.combo_interfacechannel.addItem("7")
+        self.combo_interfacechannel.addItem("8")
+        self.combo_interfacechannel.addItem("9")
+        self.combo_interfacechannel.addItem("10")
         self.combo_interfacechannel.setCurrentIndex(1)
 
         self.combo_interfacespeed = QComboBox(self)
@@ -58,9 +128,13 @@ class Diagnostyk(QTabWidget):
         button_disconnect = QPushButton("&Disconnect", self)
         send_frame = QPushButton("&SEND", self)
         receive_frame = QPushButton("&RECEIVE", self)
+#        send_new = QPushButton("&Send2", self)
+        sweep = QPushButton("SWEEP", self)
+
 
         self.comm_to_send = QLineEdit(self)
-        self.comm_to_send.setInputMask('HH-HH-HH-HH-HH-HH-HH-HH')
+        self.comm_to_send.setInputMask('HH-HH-HH-HH-HH-HH-HH-HH-HH-HH-HH-HH-HH-HH-HH-HH-HH-HH-HH-HH-HH-HH-HH-HH-HH-HH-HH-HH-HH-HH-HH-HH')
+
 
         ukladT = QGridLayout()
         ukladT.addWidget(label_interfacetype, 0, 0)
@@ -77,6 +151,7 @@ class Diagnostyk(QTabWidget):
         ukladT.addWidget(send_frame, 7, 0)
         ukladT.addWidget(self.comm_to_send, 7, 1)
         ukladT.addWidget(receive_frame, 8, 0)
+        ukladT.addWidget(sweep, 9, 0)
 
 
         self.tab1.setLayout(ukladT)
@@ -85,6 +160,7 @@ class Diagnostyk(QTabWidget):
         button_disconnect.clicked.connect(self.CAN_disconf)
         send_frame.clicked.connect(self.send_COMM)
         receive_frame.clicked.connect(self.receive_COMM)
+        sweep.clicked.connect(self.Sweep_comm)
 
 #        self.setGeometry(20, 20, 600, 600)
 #        self.setWindowTitle("Dzida Laserowa #<--->#             beta 0.0")
@@ -98,16 +174,18 @@ class Diagnostyk(QTabWidget):
         label_ReadADC = QLabel("Read ADC value",self)
         label_BuildDate = QLabel("Core IO build Date",self)
 
+
         button_gpio_set = QPushButton("&Set GPIO",self)
         button_gpio_reset = QPushButton("&Reset GPIO",self)
         button_pmw_set = QPushButton("&PWM SET")
         button_adc_get = QPushButton("&Read ADC")
         button_sleep = QPushButton("&Go to Sleep")
         button_test = QPushButton("Tester Present")
+        button_spi = QPushButton("Send SPI")
 
 
-        self.gpio_comm = QLineEdit(self)
-        self.gpio_comm.setInputMask('999-99')
+#        self.gpio_comm = QLineEdit(self)
+#        self.gpio_comm.setInputMask('999-99')
         self.pwm_freq = QLineEdit(self)
         self.pwm_freq.setText("25000")
 #        self.pwm_freq.setInputMask('999999')
@@ -117,9 +195,13 @@ class Diagnostyk(QTabWidget):
         self.adc_value = QLineEdit(self)
         self.test_result = QLineEdit(self)
         self.build_date = QLineEdit(self)
+        self.spi_command_trans = QLineEdit(self)
+        self.spi_command_receiv = QLineEdit(self)
 
         self.text_interfacetype_2 = QPlainTextEdit()
 
+        self.gpio_comm = QComboBox(self)
+        self.gpio_comm.addItems(list(self.uds.gpios))
 
         self.combo_pwm_chanell = QComboBox(self)
         self.combo_pwm_chanell.addItem("LSD_1A")
@@ -214,8 +296,11 @@ class Diagnostyk(QTabWidget):
         ukladT2.addWidget(self.combo_adc_chanell,3,1)
         ukladT2.addWidget(button_adc_get,3,2)
         ukladT2.addWidget(self.adc_value,3,3)
-        ukladT2.addWidget(button_sleep,4,0)
-        ukladT2.addWidget(self.text_interfacetype_2, 5, 0, 1, 5)
+        ukladT2.addWidget(button_spi,4,0)
+        ukladT2.addWidget(self.spi_command_trans,4,1)
+        ukladT2.addWidget(self.spi_command_receiv,5,1)
+        ukladT2.addWidget(button_sleep,6,0)
+        ukladT2.addWidget(self.text_interfacetype_2, 7, 0, 1, 5)
 
 #        layout = QVBoxLayout()
 #        layout.addWidget(horiz_group_1)
@@ -223,17 +308,56 @@ class Diagnostyk(QTabWidget):
 #        self.tab2.setLayout(horiz_group_1)
         self.tab2.setLayout(ukladT2)
 
+
         button_gpio_set.clicked.connect(self.GPIO_set)
         button_gpio_reset.clicked.connect(self.GPIO_reset)
         button_pmw_set.clicked.connect(self.send_PWM_Set)
         button_adc_get.clicked.connect(self.send_ADC_Read)
         button_sleep.clicked.connect(self.send_Go_Sleep)
         button_test.clicked.connect(self.send_Test)
+        button_spi.clicked.connect(self.send_SPI)
 
-        self.setGeometry(20, 20, 600, 600)
-        self.setWindowTitle("Dzida Laserowa #<--->#             beta 0.3")
-        self.move(150, 150)
-        self.show()
+# Trzecia zakladka
+
+    def interfejs3(self):
+
+        label_SetGPIO = QLabel("Set GPIO", self)
+
+        button_gpio_set2 = QPushButton("&Set GPIO", self)
+        button_gpio_reset2 = QPushButton("&Reset GPIO", self)
+        button_rpi_connect = QPushButton("RPI_Connect", self)
+        button_rpi_disconnect = QPushButton("RPI_Disconnect", self)
+
+        ipRange = "(?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])"  # Part of the regular expression
+        # Regulare expression
+        ipRegex = QRegExp("^" + ipRange + "\\." + ipRange + "\\." + ipRange + "\\." + ipRange + "$")
+        ipValidator = QRegExpValidator(ipRegex, self)
+
+        self.gpio_comm2 = QLineEdit(self)
+        self.gpio_comm2.setInputMask('999-99')
+        self.RPI_IP = QLineEdit(self)
+        self.RPI_IP.setValidator(ipValidator)
+        self.RPI_IP.setText('192.168.8.104')
+
+        ukladT3 = QGridLayout()
+        ukladT3.addWidget(label_SetGPIO, 1, 0)
+        ukladT3.addWidget(self.gpio_comm2, 1, 1)
+        ukladT3.addWidget(button_gpio_set2, 1, 2)
+        ukladT3.addWidget(button_gpio_reset2, 1, 3)
+        ukladT3.addWidget(button_rpi_connect, 2, 1)
+        ukladT3.addWidget(self.RPI_IP, 2, 2)
+        ukladT3.addWidget(button_rpi_disconnect, 3, 0)
+        self.tab3.setLayout(ukladT3)
+
+        button_gpio_set2.clicked.connect(self.GPIO_set)
+        button_gpio_reset2.clicked.connect(self.GPIO_reset)
+        button_rpi_connect.clicked.connect(self.RPI_connect)
+        button_rpi_disconnect.clicked.connect(self.RPI_disconnect)
+
+
+#        self.setGeometry(20, 20, 600, 600)
+#        self.move(150, 150)
+#        self.show()
 
 
     def CAN_conf(self):
@@ -241,47 +365,23 @@ class Diagnostyk(QTabWidget):
             CAN_channel = self.combo_interfacechannel.currentIndex()
             CAN_bitrate = int(self.combo_interfacespeed.currentText())
             CAN_data_bitrate = int(self.combo_fd_interfacespeed.currentText())
+            CAN_interface = "Vector"
 
-            self.CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=[0xCA, 0x50, 0x01], extended_id=True, is_fd=True)
-            self.text_interfacetype.insertPlainText("sent:  CA 50 01\n")
-            self.CAN_msg2 = can.Message(arbitration_id=0x18DA0000, data=[0xCA, 0x50, 0x02], extended_id=True)
-            self.text_interfacetype.insertPlainText("sent:  CA 50 02\n")
-            self.CAN_msg3 = can.Message(arbitration_id=0x18DA0000, data=[0xCA, 0x50, 0x03], extended_id=True)
-            self.text_interfacetype.insertPlainText("sent:  CA 50 03\n")
 
-            self.CAN_bus = VectorBus(channel=CAN_channel, bitrate=CAN_bitrate, fd=CAN_type, data_bitrate=CAN_data_bitrate, receive_own_messages=False)
-            #        CAN_type = int(self.text_interfacetype.text())
+#            self.uds = UDS()
+            self.uds.mess_win_conf(self.window)
+            self.uds_can = self.uds.CAN_config(CAN_interface, CAN_type, CAN_channel, CAN_bitrate, CAN_data_bitrate)
+
+#            self.uds.CAN_send([0x3E, 0x00])
+
             print(str(CAN_type) + '  ' + str(CAN_channel) + '  ' + str(CAN_bitrate) + ' ' + str(CAN_data_bitrate))
             self.text_interfacetype.insertPlainText(
                 "konfiguracja CAN_CASE  " + str(CAN_type) + '  ' + str(CAN_channel) + '  ' + str(CAN_bitrate)+ ' ' + str(CAN_data_bitrate) + "\n")
-            try:
-                self.CAN_bus.send(self.CAN_msg1)
-            except can.CanError:
-                print("Message not sent")
-            CAN_rtmsg2 = self.CAN_bus.recv(0.1)
-            self.CAN_bus.flush_tx_buffer()
-#            while CAN_rtmsg2 != None:
-#            while len(CAN_rtmsg2.data) > 0:
-#                CAN_rtmsg2 = self.CAN_bus.recv(0.1)
-            print("dodone")
 
-            #        self.timer.start(1000)
-         #   CAN_rtmsg = self.CAN_bus.recv(0.1)
-         #   self.text_interfacetype.insertPlainText("received" + str(CAN_rtmsg) + "\n")
-         #   CAN_rtmsg = self.CAN_bus.recv(0.1)
-         #   self.text_interfacetype.insertPlainText("received" + str(CAN_rtmsg) + "\n")
-         #   CAN_rtmsg = self.CAN_bus.recv(0.1)
-         #   self.text_interfacetype.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+
 
     def CAN_disconf(self):
-            #        CAN_received = []
-            #        CAN_received.append({0x54, 0x56, 0x67, 0x87})
-            #        CAN_received.append({0x54, 0x56, 0x67, 0x87})
-            #        CAN_received.append({0x54, 0x56, 0x67, 0x87})
-            #        CAN_received.append({0x54, 0x56, 0x67, 0x87})
-            #        self.text_interfacetype.insertPlainText("received po zakonczeniu " + str(CAN_received) + "\n")
-            #self.timer.stop()
-            self.CAN_bus.shutdown()
+        self.uds.CAN_disconfig()
 
     def send_COMM(self):
         command4 = []
@@ -299,26 +399,9 @@ class Diagnostyk(QTabWidget):
             if command2[i] != str(''):
                 command4.append(int(command2[i],16))
         self.text_interfacetype.insertPlainText(str(command4) + '\n')
-
-        print(self.io_comm)
-        #        self.CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=[0x31, 0x01, 0x14, 0x00, 0x00, 0x0A, 0x07, 0x01], extended_id=True)
-        self.CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=[0x02, 0x3E, 0x00], extended_id=True, is_fd=True, bitrate_switch=True)
-        self.CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=command4, extended_id=True, is_fd=True, bitrate_switch=True)
-        #self.CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=[0x31, 0x01, 0x14, 0x00, 0x00, 0x02, 0x0F, 0x01], extended_id=True, is_fd=True, bitrate_switch=True)
-        #self.CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=[0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA], extended_id=True, is_fd=True, bitrate_switch=True)
-        #        self.CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=[0x31, 0x01, 0x1B, 0x00, 0x02, 0x00, 0x19], extended_id=True)
-        try:
-            self.CAN_bus.send(self.CAN_msg1)
-        except can.CanError:
-            print("Message not sent")
-        self.text_interfacetype.insertPlainText("sent: " + str(self.CAN_msg1) + "\n")
-        CAN_rtmsg = self.CAN_bus.recv(0.1)
-        self.text_interfacetype.insertPlainText("received" + str(CAN_rtmsg) + "\n")
-#        CAN_rtmsg = self.CAN_bus.recv(0.1)
-#        self.text_interfacetype.insertPlainText("received" + str(CAN_rtmsg) + "\n")
-        CAN_rtmsg2 = self.CAN_bus.recv(0.1)
-#        while CAN_rtmsg2 != None:
-#            CAN_rtmsg2 = self.CAN_bus.recv(0.1)
+        rec = self.uds.CAN_send(command4)
+#        print(rec)
+#        self.uds_Send(command4)
 
     def receive_COMM(self):
 
@@ -326,186 +409,344 @@ class Diagnostyk(QTabWidget):
         self.text_interfacetype.insertPlainText("received" + str(CAN_rtmsg) + "\n")
 
     def GPIO_set(self):
-        self.send_GPIO_Set(True)
+#        self.send_GPIO_Set(True)
+
+        self.uds.uds_gpio_set(self.gpio_comm.currentText(), True)
         print ("hello")
 
 
     def GPIO_reset(self):
-        self.send_GPIO_Set(False)
+        self.uds.uds_gpio_set(self.gpio_comm.currentText(), False)
+        print ("hello")
 
-    def send_GPIO_Set(self, state):
-        self.gpio_command = self.gpio_comm.text()
-        command_gpio_t = list(self.gpio_command.split('-'))
-        print (command_gpio_t)
-        command_gpio = [0x10, 0x08, 0x31, 0x01, 0x14, 0x00, 0x00]
-        command_gpio.append(int(command_gpio_t[0],10))
-        command_gpio2 = [0x21]
-        command_gpio2.append(int(command_gpio_t[1],10))
-#        command_gpio2.append(int(command_gpio_t[2], 10))
-        if state == True:
-            command_gpio2.append(0x01)
+#    def GPIO2_reset(self):
+
+    def send_PWM_Set(self):
+        channel = self.combo_pwm_chanell.currentIndex()
+        duty = int(self.pwm_duty.text())
+        freq = int(self.pwm_freq.text())
+#       0x31 0x01 0x1B 0x00 chanel duty freq freq freq freq 0x00 0x00 0x00
+        command_pwm = [0x31, 0x01, 0x1B, 0x00]
+        command_pwm.append(channel)
+        command_pwm.append(duty)
+        command_pwm.append(freq >> 24)
+        command_pwm.append((freq & 0xFFFFFF) >> 16)
+        command_pwm.append((freq & 0xFFFF) >> 8)
+        command_pwm.append(freq & 0xFF)
+        print(str(channel) + ' ' + str(freq) + ' ' + str(duty))
+
+        rec = self.uds.CAN_send(command_pwm)
+
+    def send_ADC_Read(self):
+        channel = self.combo_adc_chanell.currentIndex()
+#       0x31 0x01 0x1A 0x02 0x00 channel
+
+        command_adc = [0x31, 0x01, 0x1A, 0x02, 0x00]
+        command_adc.append(channel)
+
+        rec = self.uds.CAN_send(command_adc)
+        print(command_adc)
+
+        if rec[0] is not None:
+            if len(rec[0].data) != 0:
+                if rec[0].data[1] == 0x71:
+                    self.adc_value.setText(str((rec[0].data[5]*256)+rec[0].data[6]))
+
+
+    def send_Go_Sleep(self):
+        rec = self.uds.CAN_send([0x31, 0x01, 0xFF, 0xA0])
+
+    def send_Test(self):
+
+        rec = self.uds.CAN_send([0x3E, 0x00])
+
+        if len(rec[0].data) != 0:
+            if rec[0].data[1] == 0x7E:
+                self.test_result.setText("Module Connected")
+                rec = self.uds.CAN_send([0x22, 0x10, 0x10])
+                if rec[0] is not None:
+                    if len(rec[0].data) != 0:
+                        if rec[0].data[2] == 0x62:
+                            self.build_date.setText(str(rec[0].data[5])+'-'+str(rec[0].data[6])+'-20'+str(rec[0].data[7]))
+#                            print("nothing")
+                        else:
+                            self.build_date.clear()
+
+            else:
+                self.test_result.setText("Module Not available")
+
+    def RPI_connect(self):
+#        header = 'dzida   '
+
+#        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        address = self.RPI_IP.text()
+        print(address)
+        s.connect((address, 1235))
+
+    def RPI_disconnect(self):
+        s.close()
+
+    def GPIO2_reset(self):
+        header2 = 'dzida   '
+        frame2 = 'taka sytuacja'
+        print(header2+str(len(frame2))+frame2)
+        s.send(bytes(header2+str(len(frame2))+frame2, "utf-8"))
+#        s.send(bytes(frame2, "utf-8"))
+
+    def uds_Send(self, uds_command):
+        arbit_ID = 0x18DA0000
+        messages = []
+        cnt = 0
+
+        if len(uds_command) < 8:
+            uds_command.insert(0, (len(uds_command)))
+            messages[0] = can.Message(arbitration_id=0x18DA0000, data=uds_command, extended_id=True, is_fd=True, bitrate_switch=True)
+            cnt = 1
         else:
-            command_gpio2.append(0x00)
-        command_gpio2.append(0x00)
-        command_gpio2.append(0x00)
-        command_gpio2.append(0x00)
-        command_gpio2.append(0x00)
-        command_gpio2.append(0x00)
+            for x in range((((len(uds_command))//7)+1)):
+                temp = messages[(x * 7):((x * 7) + 7)]
+                temp.insert(0, (0x21 + x))
+                messages[x] = can.Message(arbitration_id=0x18DA0000, data=temp, extended_id=True, is_fd=True, bitrate_switch=True)
+                self.text_interfacetype_2.insertPlainText("sent: " + str(messages[x]) + "\n")
+                cnt += 1
 
-        print (command_gpio)
-        print (command_gpio2)
-        self.CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=command_gpio, extended_id=True, is_fd=True, bitrate_switch=True)
-        self.CAN_msg2 = can.Message(arbitration_id=0x18DA0000, data=command_gpio2, extended_id=True, is_fd=True, bitrate_switch=True)
+#        for mess in messages:
+#            try:
+#                self.CAN_bus.send(mess)
+#            except can.CanError:
+#                print("Message not sent")
+#            CAN_rtmsg = self.CAN_bus.recv(0.1)
+#            if CAN_rtmsg is not None:
+#                self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+#            self.text_interfacetype_2.moveCursor(QtGui.QTextCursor.End)
+    def Sweep_comm(self):
+
+        sweep = []
+
+#        self.CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=[0x10, 0x14, 0x31, 0x01, 0x1B, 0x01, 0x00, 0x00], extended_id=True, is_fd=True, bitrate_switch=True)
+#        self.CAN_msg2 = can.Message(arbitration_id=0x18DA0000, data=[0x21, 0x75, 0x30, 0x00, 0x00, 0x9C, 0x40, 0x00], extended_id=True, is_fd=True, bitrate_switch=True)
+#        self.CAN_msg3 = can.Message(arbitration_id=0x18DA0000, data=[0x22, 0x00, 0x01, 0xF4, 0x00, 0x00, 0x00, 0x05], extended_id=True, is_fd=True, bitrate_switch=True)
+
+#        self.CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=[0x10, 0x14, 0x31, 0x01, 0x1B, 0x01, 0x00, 0x00],
+#                                    extended_id=True, is_fd=True, bitrate_switch=True)
+#        self.CAN_msg2 = can.Message(arbitration_id=0x18DA0000, data=[0x21, 0x00, 0x00, 0x00, 0x00, 0x0, 0x00, 0x00],
+#                                    extended_id=True, is_fd=True, bitrate_switch=True)
+#        self.CAN_msg3 = can.Message(arbitration_id=0x18DA0000, data=[0x22, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
+#                                    extended_id=True, is_fd=True, bitrate_switch=True)
+
+#       31 01 1B 01 00 00 0F A0 00 00 17 70 00 00 00 2D 00 00 00 01  - 4k do 6k co 45
+#       31 01 1B 01 00 00 4E 20 00 00 75 A8 00 00 00 E6 00 00 00 01  - 20kHz do 30120Hz co 230
+#       31 01 1B 01 00 00 13 88 00 00 1B 58 00 00 00 2D 00 00 00 01  - 5k do 7k co 45
+
+#        self.CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=[0x10, 0x14, 0x31, 0x01, 0x1B, 0x01, 0x00, 0x00],
+#                                    extended_id=True, is_fd=True, bitrate_switch=True)
+#        self.CAN_msg2 = can.Message(arbitration_id=0x18DA0000, data=[0x21, 0x4E, 0x20, 0x00, 0x00, 0x75, 0xA8, 0x00],
+#                                    extended_id=True, is_fd=True, bitrate_switch=True)
+#        self.CAN_msg3 = can.Message(arbitration_id=0x18DA0000, data=[0x22, 0x00, 0x00, 0xE6, 0x00, 0x00, 0x00, 0x01],
+#                                    extended_id=True, is_fd=True, bitrate_switch=True)
+
+
+#           I2C check
+
+#        self.CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=[0x10, 0x0D, 0x31, 0x01, 0x17, 0x03, 0x00, 0x07],
+#                                    extended_id=True, is_fd=True, bitrate_switch=True)
+#        self.CAN_msg2 = can.Message(arbitration_id=0x18DA0000, data=[0x21, 0x00, 0x60, 0x00, 0x01, 0x00, 0x01, 0x3E],
+#                                    extended_id=True, is_fd=True, bitrate_switch=True)
+#        self.CAN_msg3 = can.Message(arbitration_id=0x18DA0000, data=[0x04, 0x31, 0x03, 0x17, 0x03],
+#                                    extended_id=True, is_fd=True, bitrate_switch=True)
+
+        self.CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=[0x04, 0x31, 0x01, 0x17, 0x06], extended_id=True, is_fd=True, bitrate_switch=True)
+        self.CAN_msg2 = can.Message(arbitration_id=0x18DA0000, data=[0x04, 0x31, 0x03, 0x17, 0x06],
+                                    extended_id=True, is_fd=True, bitrate_switch=True)
+        self.CAN_msg3 = can.Message(arbitration_id=0x18DA0000, data=[0x30, 0x00, 0x0A],
+                                    extended_id=True, is_fd=True, bitrate_switch=True)
+
+#        self.CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=[0x10, 0x31, 0x03, 0x17, 0x05, 0x00],
+#                                    extended_id=True, is_fd=True, bitrate_switch=True)
+
         try:
             self.CAN_bus.send(self.CAN_msg1)
         except can.CanError:
             print("Message not sent")
+
         self.text_interfacetype_2.insertPlainText("sent: " + str(self.CAN_msg1) + "\n")
         CAN_rtmsg = self.CAN_bus.recv(0.1)
-        self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+        if CAN_rtmsg is not None:
+            self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+
+        sleep(1.0)
+
         try:
             self.CAN_bus.send(self.CAN_msg2)
         except can.CanError:
             print("Message not sent")
         self.text_interfacetype_2.insertPlainText("sent: " + str(self.CAN_msg2) + "\n")
         CAN_rtmsg = self.CAN_bus.recv(0.1)
-        self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg) + "\n")
-        CAN_rtmsg2 = self.CAN_bus.recv(0.1)
-#        while CAN_rtmsg2 != None:
-#            CAN_rtmsg2 = self.CAN_bus.recv(0.1)
-
-    def send_PWM_Set(self):
-        channel = self.combo_pwm_chanell.currentIndex()
-        duty = int(self.pwm_duty.text())
-        freq = int(self.pwm_freq.text())
-        print(str(channel) + ' ' + str(freq) + ' ' + str(duty))
-        command_pwm = [0x10, 0x0A, 0x31, 0x01, 0x1B, 0x00]
-        command_pwm.append(channel)
-        command_pwm.append(duty)
-        CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=command_pwm, extended_id=True, is_fd=True, bitrate_switch=True)
-        print(command_pwm)
-        command_pwm_2 = [0x21]
-        command_pwm_2.append(freq >> 24)
-        command_pwm_2.append((freq & 0xFFFFFF )>> 16)
-        command_pwm_2.append((freq & 0xFFFF) >> 8)
-        command_pwm_2.append(freq & 0xFF)
-        command_pwm_2.append(0x00)
-        command_pwm_2.append(0x00)
-        command_pwm_2.append(0x00)
-        print(command_pwm_2)
-
-        CAN_msg2 = can.Message(arbitration_id=0x18DA0000, data=command_pwm_2, extended_id=True, is_fd=True, bitrate_switch=True)
-
-        try:
-            self.CAN_bus.send(CAN_msg1)
-        except can.CanError:
-            print("Message not sent")
-        self.text_interfacetype_2.insertPlainText("sent: " + str(CAN_msg1) + "\n")
-        CAN_rtmsg = self.CAN_bus.recv(0.1)
-        self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg) + "\n")
-
-        try:
-            self.CAN_bus.send(CAN_msg2)
-        except can.CanError:
-            print("Message not sent")
-        self.text_interfacetype_2.insertPlainText("sent: " + str(CAN_msg2) + "\n")
-        CAN_rtmsg = self.CAN_bus.recv(0.1)
-        self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+        if CAN_rtmsg is not None:
+            self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+            try:
+                self.CAN_bus.send(self.CAN_msg3)
+            except can.CanError:
+                print("Message not sent")
+            self.text_interfacetype_2.insertPlainText("sent: " + str(self.CAN_msg3) + "\n")
 
         CAN_rtmsg2 = self.CAN_bus.recv(0.1)
-        while CAN_rtmsg2 != None:
-            CAN_rtmsg2 = self.CAN_bus.recv(0.1)
-
-    def send_ADC_Read(self):
-        channel = self.combo_adc_chanell.currentIndex()
-        command_adc = [0x06, 0x31, 0x01, 0x1A, 0x02, 0x00]
-        command_adc.append(channel)
-        print (command_adc)
-
-        CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=command_adc, extended_id=True, is_fd=True, bitrate_switch=True)
-
-        try:
-            self.CAN_bus.send(CAN_msg1)
-        except can.CanError:
-            print("Message not sent")
-        self.text_interfacetype_2.insertPlainText("sent: " + str(CAN_msg1) + "\n")
-        CAN_rtmsg = self.CAN_bus.recv(0.1)
-        self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+        if CAN_rtmsg2 is not None:
+            self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg2) + "\n")
         self.text_interfacetype_2.moveCursor(QtGui.QTextCursor.End)
 
-#        print (CAN_rtmsg)
-        if len(CAN_rtmsg.data) != 0:
-            if CAN_rtmsg.data[1] == 0x71:
-#                self.adc_value.setText(str(CAN_rtmsg.data[5])+str(CAN_rtmsg.data[6]))
-                self.adc_value.setText(str((CAN_rtmsg.data[5]*256)+CAN_rtmsg.data[6]))
-        CAN_rtmsg2 = self.CAN_bus.recv(0.1)
-        while CAN_rtmsg2 != None:
-            CAN_rtmsg2 = self.CAN_bus.recv(0.1)
+#        sleep(0.1)
+#        try:
+#           self.CAN_bus.send(self.CAN_msg3)
+#        except can.CanError:
+#            print("Message not sent")
+#        self.text_interfacetype_2.insertPlainText("sent: " + str(self.CAN_msg3) + "\n")
+#        CAN_rtmsg = self.CAN_bus.recv(0.1)
+#        if CAN_rtmsg is not None:
+#            self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+#        CAN_rtmsg2 = self.CAN_bus.recv(0.1)
+#        self.text_interfacetype_2.moveCursor(QtGui.QTextCursor.End)
+#        self.uds_Send(sweep)
 
-    def send_Go_Sleep(self):
-        CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=[0x04,0x31, 0x01, 0xFF, 0xA0], extended_id=True, is_fd=True, bitrate_switch=True)
+    def send_SPI(self):
+
+        self.CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=[0x10, 0x09, 0x31, 0x01, 0xFC, 0x02, 0x0E, 0x00],
+                                    extended_id=True, is_fd=True, bitrate_switch=True)
+        self.CAN_msg2 = can.Message(arbitration_id=0x18DA0000, data=[0x21, 0x02, 0x55, 0x55, 0x00, 0x00, 0x00, 0x00],
+                                    extended_id=True, is_fd=True, bitrate_switch=True)
+        self.CAN_msg3 = can.Message(arbitration_id=0x18DA0000, data=[0x22, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
+                                    extended_id=True, is_fd=True, bitrate_switch=True)
+        self.CAN_msg4 = can.Message(arbitration_id=0x18DA0000, data=[0x23, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
+                                    extended_id=True, is_fd=True, bitrate_switch=True)
+        self.CAN_msg5 = can.Message(arbitration_id=0x18DA0000, data=[0x24, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
+                                    extended_id=True, is_fd=True, bitrate_switch=True)
+        self.CAN_msg6 = can.Message(arbitration_id=0x18DA0000, data=[0x25, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
+                                    extended_id=True, is_fd=True, bitrate_switch=True)
+        self.CAN_msg7 = can.Message(arbitration_id=0x18DA0000, data=[0x26, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
+                                    extended_id=True, is_fd=True, bitrate_switch=True)
+        self.CAN_msg8 = can.Message(arbitration_id=0x18DA0000, data=[0x27, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
+                                    extended_id=True, is_fd=True, bitrate_switch=True)
+        self.CAN_msg9 = can.Message(arbitration_id=0x18DA0000, data=[0x28, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
+                                    extended_id=True, is_fd=True, bitrate_switch=True)
+        self.CAN_msg10 = can.Message(arbitration_id=0x18DA0000, data=[0x2A, 0x00, 0x00],
+                                    extended_id=True, is_fd=True, bitrate_switch=True)
+
 
         try:
-            self.CAN_bus.send(CAN_msg1)
+            self.CAN_bus.send(self.CAN_msg1)
         except can.CanError:
             print("Message not sent")
-        self.text_interfacetype_2.insertPlainText("sent: " + str(CAN_msg1) + "\n")
-        CAN_rtmsg = self.CAN_bus.recv(0.1)
-        self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg) + "\n")
-        self.CAN_bus.flush_tx_buffer()
-        CAN_rtmsg2 = self.CAN_bus.recv(0.1)
-        while CAN_rtmsg2 != None:
-            CAN_rtmsg2 = self.CAN_bus.recv(0.1)
 
-    def send_Test(self):
-        CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=[0x02, 0x3E, 0x00], extended_id=True, is_fd=True, bitrate_switch=True)
+        self.text_interfacetype_2.insertPlainText("sent: " + str(self.CAN_msg1) + "\n")
+        CAN_rtmsg = self.CAN_bus.recv(0.2)
+        if CAN_rtmsg is not None:
+            self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg) + "\n")
 
         try:
-            self.CAN_bus.send(CAN_msg1)
+            self.CAN_bus.send(self.CAN_msg2)
         except can.CanError:
             print("Message not sent")
-        self.text_interfacetype_2.insertPlainText("sent: " + str(CAN_msg1) + "\n")
-        CAN_rtmsg = self.CAN_bus.recv(0.1)
-        self.text_interfacetype_2.insertPlainText("received: " + str(CAN_rtmsg) + "\n")
+        self.text_interfacetype_2.insertPlainText("sent: " + str(self.CAN_msg2) + "\n")
+        CAN_rtmsg = self.CAN_bus.recv(0.2)
+        if CAN_rtmsg is not None:
+            self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+        CAN_rtmsg2 = self.CAN_bus.recv(0.2)
+        self.text_interfacetype_2.moveCursor(QtGui.QTextCursor.End)
+'''
+        try:
+            self.CAN_bus.send(self.CAN_msg3)
+        except can.CanError:
+            print("Message not sent")
+        self.text_interfacetype_2.insertPlainText("sent: " + str(self.CAN_msg3) + "\n")
+        CAN_rtmsg = self.CAN_bus.recv(0.2)
+        if CAN_rtmsg is not None:
+            self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+        CAN_rtmsg2 = self.CAN_bus.recv(0.1)
+        self.text_interfacetype_2.moveCursor(QtGui.QTextCursor.End)
+        try:
+            self.CAN_bus.send(self.CAN_msg4)
+        except can.CanError:
+            print("Message not sent")
+        self.text_interfacetype_2.insertPlainText("sent: " + str(self.CAN_msg4) + "\n")
+        CAN_rtmsg = self.CAN_bus.recv(0.2)
+        if CAN_rtmsg is not None:
+            self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+        CAN_rtmsg2 = self.CAN_bus.recv(0.1)
+        self.text_interfacetype_2.moveCursor(QtGui.QTextCursor.End)
 
-        if len(CAN_rtmsg.data) != 0:
-            if CAN_rtmsg.data[1] == 0x7E:
-                self.test_result.setText("Module Connected")
-                CAN_rtmsg2 = self.CAN_bus.recv(0.1)
-                while CAN_rtmsg2 != None:
-                    CAN_rtmsg2 = self.CAN_bus.recv(0.1)
-                CAN_msg1 = can.Message(arbitration_id=0x18DA0000, data=[0x03, 0x22, 0x10, 0x10], extended_id=True, is_fd=True, bitrate_switch=True)
+        try:
+            self.CAN_bus.send(self.CAN_msg5)
+        except can.CanError:
+            print("Message not sent")
+        self.text_interfacetype_2.insertPlainText("sent: " + str(self.CAN_msg5) + "\n")
+        CAN_rtmsg = self.CAN_bus.recv(0.2)
+        if CAN_rtmsg is not None:
+            self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+        CAN_rtmsg2 = self.CAN_bus.recv(0.1)
+        self.text_interfacetype_2.moveCursor(QtGui.QTextCursor.End)
 
-                try:
-                    self.CAN_bus.send(CAN_msg1)
-                except can.CanError:
-                    print("Message not sent")
-                self.text_interfacetype_2.insertPlainText("sent: " + str(CAN_msg1) + "\n")
-                self.text_interfacetype_2.moveCursor(QtGui.QTextCursor.End)
-                CAN_rtmsg = self.CAN_bus.recv(0.1)
-                self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg) + "\n")
-                self.text_interfacetype_2.moveCursor(QtGui.QTextCursor.End)
+        try:
+            self.CAN_bus.send(self.CAN_msg6)
+        except can.CanError:
+            print("Message not sent")
+        self.text_interfacetype_2.insertPlainText("sent: " + str(self.CAN_msg6) + "\n")
+        CAN_rtmsg = self.CAN_bus.recv(0.2)
+        if CAN_rtmsg is not None:
+            self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+        CAN_rtmsg2 = self.CAN_bus.recv(0.1)
+        self.text_interfacetype_2.moveCursor(QtGui.QTextCursor.End)
 
-                if len(CAN_rtmsg.data) != 0:
-                    if CAN_rtmsg.data[2] == 0x62:
-                        self.build_date.setText(str(CAN_rtmsg.data[5])+'-'+str(CAN_rtmsg.data[6])+'-20'+str(CAN_rtmsg.data[7]))
-#                        print("nothing")
-                    else:
-                        self.build_date.clear()
-                CAN_rtmsg2 = self.CAN_bus.recv(0.1)
-                while CAN_rtmsg2 != None:
-                    CAN_rtmsg2 = self.CAN_bus.recv(0.1)
+        try:
+            self.CAN_bus.send(self.CAN_msg7)
+        except can.CanError:
+            print("Message not sent")
+        self.text_interfacetype_2.insertPlainText("sent: " + str(self.CAN_msg7) + "\n")
+        CAN_rtmsg = self.CAN_bus.recv(0.2)
+        if CAN_rtmsg is not None:
+            self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+        CAN_rtmsg2 = self.CAN_bus.recv(0.1)
+        self.text_interfacetype_2.moveCursor(QtGui.QTextCursor.End)
 
-            else:
-                self.test_result.setText("Module Not available")
+        try:
+            self.CAN_bus.send(self.CAN_msg8)
+        except can.CanError:
+            print("Message not sent")
+        self.text_interfacetype_2.insertPlainText("sent: " + str(self.CAN_msg8) + "\n")
+        CAN_rtmsg = self.CAN_bus.recv(0.2)
+        if CAN_rtmsg is not None:
+            self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+        CAN_rtmsg2 = self.CAN_bus.recv(0.1)
+        self.text_interfacetype_2.moveCursor(QtGui.QTextCursor.End)
 
+        try:
+            self.CAN_bus.send(self.CAN_msg9)
+        except can.CanError:
+            print("Message not sent")
+        self.text_interfacetype_2.insertPlainText("sent: " + str(self.CAN_msg9) + "\n")
+        CAN_rtmsg = self.CAN_bus.recv(0.2)
+        if CAN_rtmsg is not None:
+            self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+        CAN_rtmsg2 = self.CAN_bus.recv(0.1)
+        self.text_interfacetype_2.moveCursor(QtGui.QTextCursor.End)
 
-
+        try:
+            self.CAN_bus.send(self.CAN_msg10)
+        except can.CanError:
+            print("Message not sent")
+        self.text_interfacetype_2.insertPlainText("sent: " + str(self.CAN_msg10) + "\n")
+        CAN_rtmsg = self.CAN_bus.recv(0.2)
+        if CAN_rtmsg is not None:
+            self.text_interfacetype_2.insertPlainText("received" + str(CAN_rtmsg) + "\n")
+        CAN_rtmsg2 = self.CAN_bus.recv(0.1)
+        self.text_interfacetype_2.moveCursor(QtGui.QTextCursor.End)
+'''
 
 if __name__=='__main__':
 
     app=QApplication(sys.argv)
-    okno=Diagnostyk()
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    okno = App()
+#    okno=Diagnostyk()
 #    w = QtGui.QWidget()
 #    tryicon = QtWidgets.QSystemTrayIcon(QtGui.QIcon('dzida.jpg'), w)
 #    tryicon.show()
