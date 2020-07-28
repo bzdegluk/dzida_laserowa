@@ -16,6 +16,8 @@ from PyQt5.QtGui import QRegExpValidator
 import socket
 import pickle
 
+# new refresh for GIT test
+
 frame = {
     "timestamp" : 0.0,
     "arbitration_id" : 0x18DA0000,
